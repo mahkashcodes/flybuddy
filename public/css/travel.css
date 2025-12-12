@@ -1,0 +1,149 @@
+/* Travel Website Theme */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3a0ca3;
+    --accent-color: #f72585;
+    --warning-color: #f9c74f;
+    --success-color: #4cc9f0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+.travel-theme {
+    font-family: 'Poppins', sans-serif;
+    color: #333;
+    padding-top: 76px; /* For fixed navbar */
+}
+
+/* Hero Section */
+.hero-section {
+    height: 70vh;
+    min-height: 500px;
+    margin-top: -76px;
+}
+
+.hero-image {
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Cards */
+.destination-card, .package-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.destination-card:hover, .package-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.destination-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.destination-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+/* Icons */
+.icon-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+/* Search Card */
+.search-card {
+    background: white;
+    margin-top: -50px;
+    position: relative;
+    z-index: 10;
+}
+
+.search-results-dropdown {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 0 0 5px 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+}
+
+/* Contact Info */
+.contact-info-item {
+    text-align: center;
+    padding: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 50vh;
+        min-height: 400px;
+    }
+    
+    .display-3 {
+        font-size: 2.5rem;
+    }
+    
+    .search-card {
+        margin-top: 0;
+        margin-bottom: 30px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.destination-card, .package-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    padding: 10px 25px;
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, #ff9a3c, #ff6b6b);
+    border: none;
+    color: white;
+}
+
+/* Form Styles */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+}
