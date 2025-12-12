@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Destination; // ← IMPORTANT: Add this line
 
 class DestinationController extends Controller
 {
     public function index()
     {
-        // For now, return empty view or some dummy data
-        return view('destinations.index', [
-            'destinations' => [] // Empty array for now
-        ]);
+        $destinations = Destination::paginate(12);
+        return view('destinations.index', compact('destinations'));
     }
     
     public function create()
