@@ -14,10 +14,15 @@ class DestinationController extends Controller
         return view('destinations.index', compact('destinations'));
     }
     
-    public function create()
-    {
-        return view('destinations.create');
+  public function create()
+{
+    // Debug: Check if view exists
+    if (!view()->exists('destinations.create')) {
+        dd('ERROR: View file destinations.create.blade.php does not exist!');
     }
+    
+    return view('destinations.create');
+}
     
     public function store(Request $request)
     {
@@ -98,18 +103,19 @@ class DestinationController extends Controller
             ->with('success', 'Destination deleted successfully!');
     }
     
-    public function search(Request $request)
-    {
-        $query = $request->input('query');
+public function search(Request $request)
+{
+    $query = $request->input('query');
+    
+    $destinations = Destination::where('name', 'like', "%$query%")
+        ->orWhere('country', 'like', "%$query%")
+        ->orWhere('continent', 'like', "%$query%")
+        ->orWhere('description', 'like', "%$query%")
+        ->take(10)
+        ->get(['id', 'name', 'country', 'continent', 'starting_price', 'featured_image']);
         
-        $destinations = Destination::where('name', 'like', "%$query%")
-            ->orWhere('country', 'like', "%$query%")
-            ->orWhere('continent', 'like', "%$query%")
-            ->take(10)
-            ->get(['id', 'name', 'country', 'continent', 'starting_price']);
-            
-        return response()->json($destinations);
-    }
+    return response()->json($destinations);
+}
     
     public function featured()
     {
