@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Destination; // ← IMPORTANT: Add this line
+use App\Models\Destination;  // Add this import
+use Illuminate\Support\Facades\Storage;
 
 class DestinationController extends Controller
 {
@@ -20,93 +21,116 @@ class DestinationController extends Controller
     
     public function store(Request $request)
     {
-        // Will implement later
-        return redirect()->route('destinations.index');
+        $request->validate([
+            'name' => 'required|max:255',
+            'description' => 'required',
+            'country' => 'required|max:100',
+            'continent' => 'required|max:50',
+            'starting_price' => 'required|numeric|min:0',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = $request->except('_token');
+        
+        if ($request->hasFile('featured_image')) {
+            $imagePath = $request->file('featured_image')->store('destinations', 'public');
+            $data['featured_image'] = $imagePath;
+        }
+        
+        Destination::create($data);
+        
+        return redirect()->route('destinations.index')
+            ->with('success', 'Destination created successfully!');
     }
     
-    public function show($id)
+    public function show($id)  // Changed from show(Destination $destination)
     {
-        return view('destinations.show', ['id' => $id]);
+        $destination = Destination::findOrFail($id);
+        return view('destinations.show', compact('destination'));
     }
     
-    public function edit($id)
+    public function edit($id)  // Changed from edit(Destination $destination)
     {
-        return view('destinations.edit', ['id' => $id]);
+        $destination = Destination::findOrFail($id);
+        return view('destinations.edit', compact('destination'));
     }
     
-    public function update(Request $request, $id)
+    public function update(Request $request, $id)  // Changed parameter
     {
-        return redirect()->route('destinations.index');
+        $request->validate([
+            'name' => 'required|max:255',
+            'description' => 'required',
+            'country' => 'required|max:100',
+            'continent' => 'required|max:50',
+            'starting_price' => 'required|numeric|min:0',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+        
+        $destination = Destination::findOrFail($id);
+        $data = $request->except(['_token', '_method']);
+        
+        if ($request->hasFile('featured_image')) {
+            if ($destination->featured_image) {
+                Storage::disk('public')->delete($destination->featured_image);
+            }
+            
+            $imagePath = $request->file('featured_image')->store('destinations', 'public');
+            $data['featured_image'] = $imagePath;
+        }
+        
+        $destination->update($data);
+        
+        return redirect()->route('destinations.index')
+            ->with('success', 'Destination updated successfully!');
     }
     
-    public function destroy($id)
+    public function destroy($id)  // Changed from destroy(Destination $destination)
     {
-        return redirect()->route('destinations.index');
+        $destination = Destination::findOrFail($id);
+        
+        if ($destination->featured_image) {
+            Storage::disk('public')->delete($destination->featured_image);
+        }
+        
+        $destination->delete();
+        
+        return redirect()->route('destinations.index')
+            ->with('success', 'Destination deleted successfully!');
     }
     
     public function search(Request $request)
     {
-        // For Ajax search
-        return response()->json([]);
+        $query = $request->input('query');
+        
+        $destinations = Destination::where('name', 'like', "%$query%")
+            ->orWhere('country', 'like', "%$query%")
+            ->orWhere('continent', 'like', "%$query%")
+            ->take(10)
+            ->get(['id', 'name', 'country', 'continent', 'starting_price']);
+            
+        return response()->json($destinations);
     }
     
     public function featured()
     {
-        // Return some dummy data for now
-        return response()->json([
-            [
-                'id' => 1,
-                'name' => 'Bali, Indonesia',
-                'image' => 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'description' => 'Beautiful tropical paradise with stunning beaches and temples.',
-                'country' => 'Indonesia',
-                'starting_price' => 1200
-            ],
-            [
-                'id' => 2,
-                'name' => 'Paris, France',
-                'image' => 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'description' => 'The city of love with iconic landmarks and rich history.',
-                'country' => 'France',
-                'starting_price' => 1500
-            ],
-            [
-                'id' => 3,
-                'name' => 'Tokyo, Japan',
-                'image' => 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'description' => 'Vibrant metropolis blending tradition with modernity.',
-                'country' => 'Japan',
-                'starting_price' => 1800
-            ],
-            [
-                'id' => 4,
-                'name' => 'New York, USA',
-                'image' => 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                'description' => 'The city that never sleeps with endless attractions.',
-                'country' => 'USA',
-                'starting_price' => 2000
-            ]
-        ]);
+        $destinations = Destination::where('is_featured', true)
+            ->where('is_active', true)
+            ->take(4)
+            ->get();
+            
+        return response()->json($destinations);
     }
     
     public function apiSearch(Request $request)
     {
-        // Dummy search results
-        return response()->json([
-            [
-                'id' => 1,
-                'name' => 'Bali',
-                'country' => 'Indonesia',
-                'continent' => 'Asia',
-                'starting_price' => 1200
-            ],
-            [
-                'id' => 2,
-                'name' => 'Paris',
-                'country' => 'France',
-                'continent' => 'Europe',
-                'starting_price' => 1500
-            ]
-        ]);
+        $query = $request->input('query');
+        
+        $destinations = Destination::where('name', 'like', "%$query%")
+            ->orWhere('country', 'like', "%$query%")
+            ->orWhere('continent', 'like', "%$query%")
+            ->take(5)
+            ->get(['id', 'name', 'country', 'continent', 'starting_price']);
+            
+        return response()->json($destinations);
     }
 }
