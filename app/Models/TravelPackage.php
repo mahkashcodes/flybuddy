@@ -1,16 +1,5 @@
 <?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class TravelPackage extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-       <?php
+// app/Models/TravelPackage.php
 
 namespace App\Models;
 
@@ -25,7 +14,7 @@ class TravelPackage extends Model
         'destination_id',
         'name',
         'description',
-        'duration',
+        'duration_days',
         'price',
         'inclusions',
         'exclusions',
@@ -34,15 +23,13 @@ class TravelPackage extends Model
         'image_url'
     ];
 
-    // Add relationship to destination
-    public function destination()
-    {
-        return $this->belongsTo(Destination::class);
-    }
-}
+    protected $casts = [
+        'inclusions' => 'array',
+        'exclusions' => 'array',
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
     ];
 
-    // Relationship with Destination
     public function destination()
     {
         return $this->belongsTo(Destination::class);
