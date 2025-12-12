@@ -14,15 +14,10 @@ class DestinationController extends Controller
         return view('destinations.index', compact('destinations'));
     }
     
-  public function create()
-{
-    // Debug: Check if view exists
-    if (!view()->exists('destinations.create')) {
-        dd('ERROR: View file destinations.create.blade.php does not exist!');
+    public function create()
+    {
+        return view('destinations.create');
     }
-    
-    return view('destinations.create');
-}
     
     public function store(Request $request)
     {
@@ -35,14 +30,22 @@ class DestinationController extends Controller
             'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $data = $request->except('_token');
-        
+        $destination = new Destination();
+        $destination->name = $request->name;
+        $destination->description = $request->description;
+        $destination->country = $request->country;
+        $destination->continent = $request->continent;
+        $destination->best_time_to_visit = $request->best_time_to_visit;
+        $destination->starting_price = $request->starting_price;
+        $destination->is_featured = $request->has('is_featured') ? 1 : 0;
+        $destination->is_active = $request->has('is_active') ? 1 : 0;
+
         if ($request->hasFile('featured_image')) {
             $imagePath = $request->file('featured_image')->store('destinations', 'public');
-            $data['featured_image'] = $imagePath;
+            $destination->featured_image = $imagePath;
         }
-        
-        Destination::create($data);
+
+        $destination->save();
         
         return redirect()->route('destinations.index')
             ->with('success', 'Destination created successfully!');
@@ -72,18 +75,26 @@ class DestinationController extends Controller
         ]);
         
         $destination = Destination::findOrFail($id);
-        $data = $request->except(['_token', '_method']);
-        
+
+        $destination->name = $request->name;
+        $destination->description = $request->description;
+        $destination->country = $request->country;
+        $destination->continent = $request->continent;
+        $destination->best_time_to_visit = $request->best_time_to_visit;
+        $destination->starting_price = $request->starting_price;
+        $destination->is_featured = $request->has('is_featured') ? 1 : 0;
+        $destination->is_active = $request->has('is_active') ? 1 : 0;
+
         if ($request->hasFile('featured_image')) {
             if ($destination->featured_image) {
                 Storage::disk('public')->delete($destination->featured_image);
             }
-            
+
             $imagePath = $request->file('featured_image')->store('destinations', 'public');
-            $data['featured_image'] = $imagePath;
+            $destination->featured_image = $imagePath;
         }
-        
-        $destination->update($data);
+
+        $destination->save();
         
         return redirect()->route('destinations.index')
             ->with('success', 'Destination updated successfully!');

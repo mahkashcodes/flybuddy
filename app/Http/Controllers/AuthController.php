@@ -27,7 +27,13 @@ class AuthController extends Controller
         
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('dashboard')->with('success', 'Logged in successfully!');
+            
+            // Redirect admins to dashboard, regular users to home
+            if (Auth::user()->is_admin) {
+                return redirect()->route('dashboard')->with('success', 'Logged in successfully!');
+            } else {
+                return redirect()->route('home')->with('success', 'Logged in successfully!');
+            }
         }
         
         return back()->withErrors([
@@ -54,11 +60,12 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'is_admin' => false,  // New users are always regular users
         ]);
         
         Auth::login($user);
         
-        return redirect()->route('dashboard')->with('success', 'Account created successfully!');
+        return redirect()->route('home')->with('success', 'Account created successfully!');
     }
     
     // Handle Logout
@@ -72,16 +79,21 @@ class AuthController extends Controller
         return redirect('/')->with('success', 'Logged out successfully!');
     }
     
-   public function dashboard()
-{
-    if (!Auth::check()) {
-        return redirect()->route('login');
+    public function dashboard()
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+        
+        // Only admins can access the dashboard
+        if (!Auth::user()->is_admin) {
+            return redirect()->route('home')->with('error', 'You do not have permission to access the dashboard.');
+        }
+        
+        $destinationsCount = \App\Models\Destination::count();
+        $packagesCount = \App\Models\TravelPackage::count();
+        $usersCount = \App\Models\User::count();
+        
+        return view('auth.dashboard', compact('destinationsCount', 'packagesCount', 'usersCount'));
     }
-    
-    $destinationsCount = \App\Models\Destination::count();
-    $packagesCount = \App\Models\TravelPackage::count();
-    $usersCount = \App\Models\User::count();
-    
-    return view('auth.dashboard', compact('destinationsCount', 'packagesCount', 'usersCount'));
-}
 }
