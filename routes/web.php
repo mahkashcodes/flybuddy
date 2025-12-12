@@ -1,20 +1,74 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DestinationController;
+use App\Http\Controllers\TravelPackageController;
+use App\Http\Controllers\AuthController;
 
-Route::get('/', function () {
-    return view('welcome');
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// Main Pages (Public)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+// Authentication Routes
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Public Viewing Routes (No Auth Required)
+Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
+Route::get('/destinations/{id}', [DestinationController::class, 'show'])->name('destinations.show');
+Route::get('/packages', [TravelPackageController::class, 'index'])->name('packages.index');
+Route::get('/packages/{id}', [TravelPackageController::class, 'show'])->name('packages.show');
+
+// Search Routes (Public)
+Route::get('/destinations/search', [DestinationController::class, 'search'])->name('destinations.search');
+Route::get('/packages/search', [TravelPackageController::class, 'search'])->name('packages.search');
+
+// API Routes (for Ajax calls - Public)
+Route::get('/api/featured-destinations', [DestinationController::class, 'featured']);
+Route::get('/api/featured-packages', [TravelPackageController::class, 'featured']);
+Route::get('/api/destinations/search', [DestinationController::class, 'apiSearch']);
+
+// Newsletter
+Route::post('/newsletter/subscribe', [HomeController::class, 'subscribe'])->name('newsletter.subscribe');
+
+// ==================== PROTECTED ADMIN ROUTES ====================
+Route::middleware(['auth'])->group(function () {
+    // Admin Dashboard
+    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+    
+    // Destinations Admin Routes (Create, Edit, Delete)
+    Route::get('/destinations/create', [DestinationController::class, 'create'])->name('destinations.create');
+    Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
+    Route::get('/destinations/{id}/edit', [DestinationController::class, 'edit'])->name('destinations.edit');
+    Route::put('/destinations/{id}', [DestinationController::class, 'update'])->name('destinations.update');
+    Route::delete('/destinations/{id}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
+    
+    // Packages Admin Routes (Create, Edit, Delete)
+    Route::get('/packages/create', [TravelPackageController::class, 'create'])->name('packages.create');
+    Route::post('/packages', [TravelPackageController::class, 'store'])->name('packages.store');
+    Route::get('/packages/{id}/edit', [TravelPackageController::class, 'edit'])->name('packages.edit');
+    Route::put('/packages/{id}', [TravelPackageController::class, 'update'])->name('packages.update');
+    Route::delete('/packages/{id}', [TravelPackageController::class, 'destroy'])->name('packages.destroy');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// Temporary route for testing
+Route::get('/test', function() {
+    return "Test route working!";
 });
 
-require __DIR__.'/auth.php';
+// Remove or comment out this Laravel default route!
+// Route::get('/', function () {
+//     return view('welcome');
+// });
