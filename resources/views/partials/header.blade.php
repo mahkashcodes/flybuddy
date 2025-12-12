@@ -30,20 +30,7 @@
                     </a>
                 </li>
                 
-                <!-- Cart Icon -->
-                <li class="nav-item">
-                    <a class="nav-link position-relative" href="{{ route('cart.index') }}">
-                        <i class="fas fa-shopping-cart"></i> Cart
-                        @php
-                            $cartCount = count(session()->get('cart', []));
-                        @endphp
-                        @if($cartCount > 0)
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6em;">
-                            {{ $cartCount }}
-                        </span>
-                        @endif
-                    </a>
-                </li>
+            
                 
                 @auth
                     <!-- Admin Dropdown Menu -->
