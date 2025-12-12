@@ -27,9 +27,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Public Viewing Routes (No Auth Required)
 Route::get('/destinations', [DestinationController::class, 'index'])->name('destinations.index');
-Route::get('/destinations/{id}', [DestinationController::class, 'show'])->name('destinations.show');
 Route::get('/packages', [TravelPackageController::class, 'index'])->name('packages.index');
 Route::get('/packages/{id}', [TravelPackageController::class, 'show'])->name('packages.show');
+Route::get('/destinations/{id}', [DestinationController::class, 'show'])->name('destinations.show');
 
 // Search Routes (Public)
 Route::get('/destinations/search', [DestinationController::class, 'search'])->name('destinations.search');
@@ -49,9 +49,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     
     // Destinations Admin Routes (Create, Edit, Delete)
+    // IMPORTANT: Put specific routes BEFORE parameterized routes
     Route::get('/destinations/create', [DestinationController::class, 'create'])->name('destinations.create');
-    Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
     Route::get('/destinations/{id}/edit', [DestinationController::class, 'edit'])->name('destinations.edit');
+    Route::post('/destinations', [DestinationController::class, 'store'])->name('destinations.store');
     Route::put('/destinations/{id}', [DestinationController::class, 'update'])->name('destinations.update');
     Route::delete('/destinations/{id}', [DestinationController::class, 'destroy'])->name('destinations.destroy');
     

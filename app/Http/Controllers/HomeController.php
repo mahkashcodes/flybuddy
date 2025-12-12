@@ -8,17 +8,12 @@ use App\Models\TravelPackage;
 
 class HomeController extends Controller
 {
-    public function index()
-    {
-        return view('home');
-    }
-    
-    public function featuredDestinations()
-    {
-        // Return featured destinations for Ajax call
-        $destinations = Destination::take(4)->get();
-        return response()->json($destinations);
-    }
+  public function index()
+{
+    // Temporary fix - returns empty paginator
+    $destinations = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+    return view('destinations.index', compact('destinations'));
+}
     
     public function featuredPackages()
     {
