@@ -1,51 +1,22 @@
 <?php
+// app/Http/Controllers/TravelPackageController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\TravelPackage;
 use App\Models\Destination;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class TravelPackageController extends Controller
 {
     public function index()
     {
-        $packages = TravelPackage::with('destination')->paginate(12);
+        $packages = TravelPackage::with('destination')
+            ->where('is_active', true)
+            ->orderBy('price')
+            ->paginate(12);
+            
         return view('packages.index', compact('packages'));
-    }
-
-    public function create()
-    {
-        $destinations = Destination::all();
-        return view('packages.create', compact('destinations'));
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'required',
-            'destination_id' => 'required|exists:destinations,id',
-            'duration_days' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
-            'package_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'max_participants' => 'nullable|integer|min:1',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        $data = $request->except('_token');
-        
-        if ($request->hasFile('package_image')) {
-            $imagePath = $request->file('package_image')->store('packages', 'public');
-            $data['package_image'] = $imagePath;
-        }
-        
-        TravelPackage::create($data);
-        
-        return redirect()->route('packages.index')
-            ->with('success', 'Travel package created successfully!');
     }
 
     public function show($id)
@@ -54,78 +25,144 @@ class TravelPackageController extends Controller
         return view('packages.show', compact('package'));
     }
 
+    public function create()
+    {
+        $destinations = Destination::where('is_active', true)->get();
+        return view('packages.create', compact('destinations'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'destination_id' => 'required|exists:destinations,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'duration_days' => 'required|integer|min:1',
+            'price' => 'required|numeric|min:0',
+            'inclusions' => 'nullable|string',
+            'exclusions' => 'nullable|string',
+            'max_people' => 'required|integer|min:1',
+            'image_url' => 'nullable|url',
+            'is_active' => 'boolean',
+        ]);
+
+        // Convert inclusions/exclusions from string to array
+        if ($request->inclusions) {
+            $validated['inclusions'] = json_encode(explode(',', $request->inclusions));
+        }
+        if ($request->exclusions) {
+            $validated['exclusions'] = json_encode(explode(',', $request->exclusions));
+        }
+
+        // Set default for is_active if not provided
+        $validated['is_active'] = $request->has('is_active') ? 1 : 0;
+
+        TravelPackage::create($validated);
+
+        return redirect()->route('packages.index')
+            ->with('success', 'Travel package created successfully!');
+    }
+
     public function edit($id)
     {
         $package = TravelPackage::findOrFail($id);
-        $destinations = Destination::all();
+        $destinations = Destination::where('is_active', true)->get();
         return view('packages.edit', compact('package', 'destinations'));
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'title' => 'required|max:255',
-            'description' => 'required',
+        $package = TravelPackage::findOrFail($id);
+        
+        $validated = $request->validate([
             'destination_id' => 'required|exists:destinations,id',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
             'duration_days' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
-            'package_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'max_participants' => 'nullable|integer|min:1',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'inclusions' => 'nullable|string',
+            'exclusions' => 'nullable|string',
+            'max_people' => 'required|integer|min:1',
+            'image_url' => 'nullable|url',
+            'is_active' => 'boolean',
         ]);
-        
-        $package = TravelPackage::findOrFail($id);
-        $data = $request->except(['_token', '_method']);
-        
-        if ($request->hasFile('package_image')) {
-            if ($package->package_image) {
-                Storage::disk('public')->delete($package->package_image);
-            }
-            
-            $imagePath = $request->file('package_image')->store('packages', 'public');
-            $data['package_image'] = $imagePath;
+
+        // Convert to array
+        if ($request->inclusions) {
+            $validated['inclusions'] = json_encode(explode(',', $request->inclusions));
         }
-        
-        $package->update($data);
-        
+        if ($request->exclusions) {
+            $validated['exclusions'] = json_encode(explode(',', $request->exclusions));
+        }
+
+        $package->update($validated);
+
         return redirect()->route('packages.index')
-            ->with('success', 'Travel package updated successfully!');
+            ->with('success', 'Package updated successfully!');
     }
 
     public function destroy($id)
     {
         $package = TravelPackage::findOrFail($id);
-        
-        if ($package->package_image) {
-            Storage::disk('public')->delete($package->package_image);
-        }
-        
         $package->delete();
-        
+
         return redirect()->route('packages.index')
-            ->with('success', 'Travel package deleted successfully!');
+            ->with('success', 'Package deleted successfully!');
     }
+
+    // ==================== ADD THESE MISSING METHODS ====================
     
-  public function search(Request $request)
-{
-    $query = $request->input('query');
-    
-    $packages = TravelPackage::with('destination')
-        ->where('title', 'like', "%$query%")
-        ->orWhere('description', 'like', "%$query%")
-        ->orWhere('inclusions', 'like', "%$query%")
-        ->orWhereHas('destination', function($q) use ($query) {
-            $q->where('name', 'like', "%$query%")
-              ->orWhere('country', 'like', "%$query%")
-              ->orWhere('continent', 'like', "%$query%");
-        })
-        ->take(10)
-        ->get(['id', 'title', 'price', 'duration_days', 'package_image', 'destination_id']);
+    /**
+     * Search packages (for Ajax search in your destinations blade)
+     */
+    public function search(Request $request)
+    {
+        $query = $request->get('query');
         
-    // Load destination names
-    $packages->load('destination:id,name');
-    
-    return response()->json($packages);
-}
+        $packages = TravelPackage::where('is_active', true)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%")
+                  ->orWhereHas('destination', function($q2) use ($query) {
+                      $q2->where('name', 'like', "%{$query}%")
+                         ->orWhere('country', 'like', "%{$query}%");
+                  });
+            })
+            ->limit(10)
+            ->get();
+        
+        return response()->json($packages);
+    }
+
+    /**
+     * Get featured packages for API
+     */
+    public function featured()
+    {
+        $packages = TravelPackage::with('destination')
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
+        
+        return response()->json($packages);
+    }
+
+    /**
+     * API search for packages
+     */
+    public function apiSearch(Request $request)
+    {
+        $query = $request->get('q');
+        
+        $packages = TravelPackage::where('is_active', true)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('description', 'like', "%{$query}%");
+            })
+            ->limit(5)
+            ->get(['id', 'name', 'price', 'image_url']);
+        
+        return response()->json($packages);
+    }
 }

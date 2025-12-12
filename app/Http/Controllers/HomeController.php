@@ -5,21 +5,32 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Destination;
 use App\Models\TravelPackage;
+use App\Models\User;
 
 class HomeController extends Controller
 {
-  public function index()
-{
-    // Temporary fix - returns empty paginator
-    $destinations = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
-    return view('destinations.index', compact('destinations'));
-}
+    public function index()
+    {
+        // Return HOME view, not destinations.index
+        return view('home');
+    }
+    
+    public function featuredDestinations()
+    {
+        // Return featured destinations for Ajax call
+        $destinations = Destination::where('is_active', true)
+            ->where('is_featured', true)
+            ->take(4)
+            ->get();
+        return response()->json($destinations);
+    }
     
     public function featuredPackages()
     {
         // Return featured packages for Ajax call
         $packages = TravelPackage::with('destination')
-            ->take(3)
+            ->where('is_active', true)
+            ->take(4)
             ->get();
         return response()->json($packages);
     }

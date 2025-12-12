@@ -30,12 +30,27 @@
                     </a>
                 </li>
                 
+                <!-- Cart Icon -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{{ route('cart.index') }}">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                        @php
+                            $cartCount = count(session()->get('cart', []));
+                        @endphp
+                        @if($cartCount > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6em;">
+                            {{ $cartCount }}
+                        </span>
+                        @endif
+                    </a>
+                </li>
+                
                 @auth
                     <!-- Admin Dropdown Menu -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
-                            <span class="badge bg-warning ms-1">Admin</span>
+                            <i class="fas fa-user-shield"></i> {{ Auth::user()->name }}
+                            <span class="badge bg-danger ms-1">Admin</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
@@ -79,17 +94,13 @@
                         </ul>
                     </li>
                 @else
-                    <!-- Guest User Links -->
+                    <!-- Guest User Links - Only Admin Login, Register hidden -->
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}" href="{{ route('login') }}">
-                            <i class="fas fa-sign-in-alt"></i> Login
+                        <a class="nav-link btn btn-outline-primary ms-2 {{ request()->routeIs('login') ? 'active' : '' }}" href="{{ route('login') }}">
+                            <i class="fas fa-user-shield"></i> Admin Login
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('register') ? 'active' : '' }}" href="{{ route('register') }}">
-                            <i class="fas fa-user-plus"></i> Register
-                        </a>
-                    </li>
+                    <!-- Register link completely removed from navbar -->
                 @endauth
             </ul>
         </div>

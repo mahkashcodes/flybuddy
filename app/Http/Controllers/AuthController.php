@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\Destination;
+use App\Models\TravelPackage;
 
 class AuthController extends Controller
 {
@@ -30,7 +33,7 @@ class AuthController extends Controller
             
             // Redirect admins to dashboard, regular users to home
             if (Auth::user()->is_admin) {
-                return redirect()->route('dashboard')->with('success', 'Logged in successfully!');
+                return redirect()->route('dashboard')->with('success', 'Welcome back, ' . Auth::user()->name . '!');
             } else {
                 return redirect()->route('home')->with('success', 'Logged in successfully!');
             }
@@ -47,7 +50,7 @@ class AuthController extends Controller
         return view('auth.register');
     }
     
-    // Handle Registration
+    // Handle Registration - FIXED
     public function register(Request $request)
     {
         $request->validate([
@@ -60,7 +63,13 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'is_admin' => false,  // New users are always regular users
+            'is_admin' => false,  // Explicitly set to false
+        ]);
+        
+        // FIXED: Added semicolon and proper syntax
+        Log::info('New user registered:', [
+            'email' => $user->email,
+            'is_admin' => $user->is_admin
         ]);
         
         Auth::login($user);
@@ -79,21 +88,66 @@ class AuthController extends Controller
         return redirect('/')->with('success', 'Logged out successfully!');
     }
     
+    // Admin Dashboard - FIXED
     public function dashboard()
     {
+        // Check if user is logged in
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return redirect()->route('login')->with('error', 'Please login first.');
         }
         
-        // Only admins can access the dashboard
-        if (!Auth::user()->is_admin) {
-            return redirect()->route('home')->with('error', 'You do not have permission to access the dashboard.');
+        // Get the authenticated user
+        $user = Auth::user();
+        
+        // DEBUG: Check user's admin status
+        Log::info('Dashboard access check:', [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'user_email' => $user->email,
+            'is_admin' => $user->is_admin,
+            'is_admin_type' => gettype($user->is_admin),
+            'is_admin_value' => $user->is_admin
+        ]);
+        
+        // Check if user is admin (make sure is_admin is a boolean)
+        if (!$user->is_admin) {
+            // Double check with different methods
+            $isAdmin = (bool)$user->is_admin; // Cast to boolean
+            $isAdminFromDB = User::find($user->id)->is_admin; // Fresh from DB
+            
+            Log::warning('Non-admin user blocked from dashboard:', [
+                'user_id' => $user->id,
+                'is_admin' => $user->is_admin,
+                'cast_to_bool' => $isAdmin,
+                'fresh_from_db' => $isAdminFromDB
+            ]);
+            
+            return redirect()->route('home')
+                ->with('error', '⚠️ Access denied. Admin privileges required.');
         }
         
-        $destinationsCount = \App\Models\Destination::count();
-        $packagesCount = \App\Models\TravelPackage::count();
-        $usersCount = \App\Models\User::count();
+        // User is admin - show dashboard
+        Log::info('Admin accessing dashboard:', ['user_id' => $user->id]);
         
-        return view('auth.dashboard', compact('destinationsCount', 'packagesCount', 'usersCount'));
+        // Get counts for dashboard
+        $destinationCount = Destination::count();
+        $packageCount = TravelPackage::count();
+        $featuredDestinationCount = Destination::where('is_featured', true)->count();
+        $activePackageCount = TravelPackage::where('is_active', true)->count();
+        $usersCount = User::count();
+        
+        // Get latest additions
+        $latestDestinations = Destination::latest()->take(5)->get();
+        $latestPackages = TravelPackage::with('destination')->latest()->take(5)->get();
+        
+        return view('dashboard.index', compact(
+            'destinationCount', 
+            'packageCount',
+            'featuredDestinationCount',
+            'activePackageCount',
+            'usersCount',
+            'latestDestinations',
+            'latestPackages'
+        ));
     }
 }

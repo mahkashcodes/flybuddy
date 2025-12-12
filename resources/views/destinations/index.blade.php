@@ -12,6 +12,15 @@
         </div>
     </div>
     
+    <!-- Debug Link - TEMPORARY -->
+    <div class="row mb-3">
+        <div class="col text-center">
+            <small class="text-muted">
+                <a href="/debug-routes" class="text-decoration-none">Debug: Check if routes exist</a>
+            </small>
+        </div>
+    </div>
+    
     <!-- Ajax Search and Filter -->
     <div class="row mb-4">
         <div class="col-md-8">
@@ -90,7 +99,8 @@
                             <br>
                             <small class="text-muted">Starting price</small>
                         </div>
-                        <a href="{{ route('destinations.show', $destination->id) }}" class="btn btn-outline-primary">
+                        <!-- FIXED: Using direct URL instead of route helper -->
+                        <a href="/destinations/{{ $destination->id }}" class="btn btn-outline-primary">
                             Explore <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
