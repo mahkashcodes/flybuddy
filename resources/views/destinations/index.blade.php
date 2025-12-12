@@ -12,14 +12,7 @@
         </div>
     </div>
     
-    <!-- Debug Link - TEMPORARY -->
-    <div class="row mb-3">
-        <div class="col text-center">
-            <small class="text-muted">
-                <a href="/debug-routes" class="text-decoration-none">Debug: Check if routes exist</a>
-            </small>
-        </div>
-    </div>
+ 
     
     <!-- Ajax Search and Filter -->
     <div class="row mb-4">
