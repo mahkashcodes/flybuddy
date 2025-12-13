@@ -1,59 +1,100 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Fly Buddy
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**Fly Buddy** is a Laravel-based travel listing and admin app for managing destinations and travel packages.
 
-## About Laravel
+**Project Overview**
+- **Purpose:** Manage and browse travel destinations and travel packages with admin CRUD and public listing/search endpoints.
+- **Stack:** Laravel (PHP), MySQL / MariaDB, Vite, Blade templates and common CSS utilities (Bootstrap/Tailwind present in project files).
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Setup Instructions**
+- **Prerequisites:** PHP 8.1+, Composer, Node.js (16+), npm, MySQL (or XAMPP on Windows), Git.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Clone repository:**
+```bash
+git clone <repo-url> flybuddy
+cd flybuddy
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Copy environment file and set secrets:**
+```powershell
+copy .env.example .env
+# then open .env and set DB_*, APP_URL, etc.
+```
 
-## Learning Laravel
+- **Install dependencies:**
+```bash
+composer install
+npm install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Generate application key:**
+```bash
+php artisan key:generate
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Database setup:**
+1. Create a database (e.g., `flybuddy`).
+2. Update `.env` with database credentials.
 
-## Laravel Sponsors
+- **Run migrations & seeders:**
+```bash
+php artisan migrate --seed
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- **Link storage for public uploads:**
+```bash
+php artisan storage:link
+```
 
-### Premium Partners
+- **Build assets / run dev server:**
+```bash
+npm run dev
+php artisan serve
+# or configure XAMPP/Apache to serve the `public` folder
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**Usage Guide**
+- **Public pages:**
+	- Home: `/`
+	- Destinations list: `/destinations`
+	- Packages list: `/packages`
+	- Details: `/destinations/{id}`, `/packages/{id}`
 
-## Contributing
+- **Authentication / Admin:**
+	- Register at `/register` or login at `/login` to access admin features.
+	- The admin dashboard is at `/dashboard` (note: in development some admin routes are temporarily public; add auth middleware before production).
+	- Authenticated users will see "Add", "Edit", and "Delete" controls on listing pages.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **API endpoints:**
+	- `/api/featured-destinations`
+	- `/api/featured-packages`
+	- `/api/packages/search?query=...`
 
-## Code of Conduct
+- **Helpful commands:**
+```bash
+php artisan route:list
+php artisan view:clear
+php artisan cache:clear
+php artisan migrate --seed
+php artisan test
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**Troubleshooting**
+- If `/destinations/create` or `/packages/create` returns 404, check that dynamic `{id}` routes are constrained (the project uses `->whereNumber('id')`), and run `php artisan route:list` to confirm route ordering.
+- If uploaded images don't appear, ensure `php artisan storage:link` has been run and that `public/storage` is accessible to the webserver.
+- On Windows/XAMPP, ensure `storage` and `bootstrap/cache` are writable by PHP/Apache.
 
-## Security Vulnerabilities
+**Testing**
+- Run tests:
+```bash
+php artisan test
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Contributing**
+- Fork, create a feature branch, add tests, and open a pull request. Keep commits focused and descriptive.
 
-## License
+**Notes & Next Steps**
+- Blade views are in `resources/views`, controllers in `app/Http/Controllers`, and migrations/seeders in `database/`.
+- Before production: protect admin routes with middleware, secure `.env` values, and review file permissions.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
