@@ -6,23 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::table('packages', function (Blueprint $table) {
-            //
+        Schema::table('travel_packages', function (Blueprint $table) {
+            // Check if column doesn't exist first
+            if (!Schema::hasColumn('travel_packages', 'destination_id')) {
+                $table->unsignedBigInteger('destination_id')->nullable()->after('id');
+                
+                // Add foreign key constraint
+                $table->foreign('destination_id')
+                      ->references('id')
+                      ->on('destinations')
+                      ->onDelete('set null');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::table('packages', function (Blueprint $table) {
-            //
+        Schema::table('travel_packages', function (Blueprint $table) {
+            // Drop the foreign key first
+            $table->dropForeign(['destination_id']);
+            // Then drop the column
+            $table->dropColumn('destination_id');
         });
     }
 };

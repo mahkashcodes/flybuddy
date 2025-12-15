@@ -1,27 +1,12 @@
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
+// create_cart_items_table.php  
+public function up()
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('cart_items', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('cart_items');
-    }
-};
+    Schema::create('cart_items', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('cart_id')->constrained()->onDelete('cascade');
+        $table->morphs('item'); // Can store Destination or TravelPackage
+        $table->integer('quantity')->default(1);
+        $table->decimal('price', 10, 2);
+        $table->timestamps();
+    });
+}

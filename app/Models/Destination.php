@@ -1,18 +1,17 @@
 <?php
+// app/Models/Destination.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Destination extends Model
 {
     use HasFactory;
 
-  // Allow mass assignment for these columns
     protected $fillable = [
-          'name',
+        'name',
         'description',
         'country',
         'continent',
@@ -23,22 +22,15 @@ class Destination extends Model
         'featured_image'
     ];
 
-    // Casts for convenience
     protected $casts = [
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
         'starting_price' => 'decimal:2',
     ];
 
-    /**
-     * Get the travel packages for this destination.
-     */
-    public function travelPackages(): HasMany
+    // Add this relationship
+    public function travelPackages()
     {
         return $this->hasMany(TravelPackage::class);
-    }
-
-    // Alias for easier access
-    public function packages(): HasMany
-    {
-        return $this->travelPackages();
     }
 }

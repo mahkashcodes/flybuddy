@@ -1,4 +1,40 @@
 /* Travel Website Theme */
+
+
+/* Ajax Search Styles */
+.search-results-dropdown {
+    position: absolute;
+    z-index: 1050;
+    background: white;
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.175);
+}
+
+.search-results-dropdown .list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    padding: 10px 15px;
+}
+
+.search-results-dropdown .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.search-results-dropdown .list-group-item:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Add data-continent attribute to destination items */
+.destination-item {
+    transition: all 0.3s ease;
+}
 :root {
     --primary-color: #4361ee;
     --secondary-color: #3a0ca3;
