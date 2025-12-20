@@ -30,13 +30,14 @@ class AuthController extends Controller
         
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
-            // Redirect admins to dashboard, regular users to home
-            if (Auth::user()->is_admin) {
-                return redirect()->route('dashboard')->with('success', 'Welcome back, ' . Auth::user()->name . '!');
-            } else {
-                return redirect()->route('home')->with('success', 'Logged in successfully!');
+
+            // Use model helper for admin check
+            $user = Auth::user();
+            if ($user->isAdmin()) {
+                return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->name . '!');
             }
+
+            return redirect()->route('home')->with('success', 'Logged in successfully!');
         }
         
         return back()->withErrors([
@@ -109,19 +110,17 @@ class AuthController extends Controller
             'is_admin_value' => $user->is_admin
         ]);
         
-        // Check if user is admin (make sure is_admin is a boolean)
-        if (!$user->is_admin) {
-            // Double check with different methods
-            $isAdmin = (bool)$user->is_admin; // Cast to boolean
-            $isAdminFromDB = User::find($user->id)->is_admin; // Fresh from DB
-            
+        // Check if user is admin using model helper
+        if (!$user->isAdmin()) {
+            // Double check with fresh DB value
+            $isAdminFromDB = User::find($user->id)->isAdmin();
+
             Log::warning('Non-admin user blocked from dashboard:', [
                 'user_id' => $user->id,
                 'is_admin' => $user->is_admin,
-                'cast_to_bool' => $isAdmin,
                 'fresh_from_db' => $isAdminFromDB
             ]);
-            
+
             return redirect()->route('home')
                 ->with('error', '⚠️ Access denied. Admin privileges required.');
         }
